@@ -1,0 +1,62 @@
+---
+title: "rIG"
+author: 
+date: "22 July 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+
+```
+
+
+More details are on the way
+
+## Install the Library
+
+```
+# Install deependancies
+install.packages("httr")
+install.packages("jsonlite")
+install.packages("tidyverse")
+install.packages("rlist")
+install.packages("glue")
+install.packages("lubridate")
+
+install.packages("furrr")
+plan(multiprocess)
+
+# install rIG library
+install_github("JoeFernando/rIG")
+```
+
+
+## Login / Logout
+
+```
+# Login
+
+api <- "XXXXXXXXXXXXXXXXXXXXXXXXXXX"
+b   <- '{"identifier":"CCCCCCCCCC", "password": "DDDDDDDDDDD"}'
+
+ig_login(b, api)
+
+ig_logout()
+
+```
+
+## Search Markets
+
+```
+ig_search("copper")
+
+```
+
+## Download History
+```
+ig_history(epic , mkt.name , from = "2015-01-01",  to = "2018-07-21", res = "DAY")
+
+time_resolution() # gives you available resolutions although SECOND is not working
+
+```
