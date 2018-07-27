@@ -129,9 +129,9 @@ extract_prices_from_list <- function(one.list.of.prices){
 
   price_data <- purrr::map_dfc(c("openPrice", "highPrice", "lowPrice", "closePrice"), ~extract_prices(.x, one.list.of.prices))
 
-  date_1 <- one.list.of.prices[1] %>% tibble::as.tibble
-  date_2 <- one.list.of.prices[2] %>% tibble::as.tibble
-  vol    <- one.list.of.prices[7] %>% tibble::as.tibble
+  date_1 <- one.list.of.prices[1] #%>% tibble::as.tibble
+  date_2 <- one.list.of.prices[2] #%>% tibble::as.tibble
+  vol    <- one.list.of.prices[7] #%>% tibble::as.tibble
 
   clean_price_data <- dplyr::bind_cols(date_1, date_2, price_data, vol)
 

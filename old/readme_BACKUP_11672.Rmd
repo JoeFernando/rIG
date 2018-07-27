@@ -1,0 +1,266 @@
+<<<<<<< HEAD
+---
+title: "Untitled"
+author: "Joe Fernando"
+date: "23 July 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install and load up libraries
+
+To get started you will need loging id/password from your IG account along with your api key. The current link is pointed at the Dev verson of the API.
+
+The usual warnings apply for use of this library, I built this for my personal use, there is no regular support for this library. I have published this to help and advance the R community. Use at own risk.
+
+
+To get started install **rIG** along with its dependancies: 
+
+```{}
+library(ghit)
+install_github("JoeFernando/rIG")
+
+library(rIG)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(jsonlite)
+library(httr)
+library(rlist)
+library(glue)
+```
+
+
+
+## Login/Logout
+
+```{}
+
+b   <- '{"identifier":"your_login_id", "password": "insert_password_here"}'
+api <- "insert_api_key_here"
+
+ig_login(b, api) 
+
+ig_logout() # this will end your session
+
+```
+
+
+
+## Searching for Markets
+
+A tibble is retuned for all matching markets:
+
+```{}
+ig_search("Copper")
+ig_search("AUDUSD")
+```
+
+
+
+## Time resolutions for history data
+
+There is a helper `time_resolution` vector to list out the options available. Presently, `SECOND`is not working.
+
+```{r, echo = TRUE}
+
+rIG::time_resolution
+
+```
+
+
+
+## Downloading history
+
+When you query the API the returned data gives both `bid` and `ask`. Hence, there is a two step process to getting data in the familiar `ohlcv` form, however the process is straighforward. If you prefer you could wrap the whole thing within a function. I prefer to have these separately. The result is presented in `tibble` format:
+
+```{}
+raw_dl <- ig_history(epic = "CS.D.GBPUSD.CFD.IP", mkt.name = "GBP/USD", 
+                          from = "2018-07-02", to = "2018-07-03", res = "DAY")
+
+ohlc_dl <- get_ohlc(raw_dl, "ask")                    # you can change between "bid" or "ask" - default is set for "ask"
+ohlc_dl_rename <- get_ohlc_rename(raw_dl, "ask")     # this assigns mkt.name as prefix to ohlcv column names
+
+```
+
+
+
+Additionally, the `mkt.name` is set as the `attribute` name for the returned data. This is very handy to name within  `lists` to hold data for analysis. 
+
+``` {}
+epic_names <- read_csv("epic_names.csv")   # table with epic names and instrument names
+
+
+raw_list <- map2(epic_names$epic, epic_names$instrumentName, ~ig_history(epic = .x, mkt.name = .y,
+                                                                   from = "2018-07-01", to = "2018-07-03", 
+                                                                   res = "DAY"))
+
+names(raw_list) <- map_chr(raw_list, ~attr(.x, "name")) # This is to name the tibbles within the list
+
+
+ohlc_list         <- map(raw_list, ~get_ohlc(.x))
+ohlc_list_renamed <- map(raw_list, ~get_ohlc_rename(.x))  
+
+
+# Check names
+names(raw_list)
+names(ohlc_list)
+names(ohlc_list_renamed)
+```
+
+
+I download all my data in one go, so to speed-up your download use the `furrr` package, change `map2` to `future_map2`.
+
+## Updating EOD Data
+Two functions are available to update EOD data, `ig_eod` and `ig_eod_list`. As I hold my data in a list, I use the latter function. The function is pretty simple, it assumes that you have a table containing `epic codes` and `mkt.name` as used in history download function. usage is as follows:
+
+
+```{}
+
+ig_eod <- (mkt.name,
+to.date = (Sys.Date() + lubridate::ddays(1)),   # this is pre set to download up to the latest date
+df.w.hist,                                      # tibble/df containing historic data
+epic.table,                                     # this should be a df with 2 columns, epic and its name
+epic.code.col_name = "epic",                    # these two epic.table field names 
+epic.name.col.name = "instrumentName")
+
+
+
+ig_eod_list <- (mkt.name,
+to.date = (Sys.Date() + lubridate::ddays(1)),
+list.of.df,                                   # list containing your data
+epic.table,
+epic.code.col_name = "epic",
+epic.name.col.name = "instrumentName")
+
+
+
+# This is how I use this function. All my historic data is held inlist "bb"
+bbb <- map(names(bb), ~ig_eod_list(df.name = ., 
+                                    list.of.df = bb,
+                                    epic.table = epic_names))
+
+names(bbb) <- purrr::map_chr(bbb, ~attr(.x, "name"))
+
+```
+=======
+---
+title: "Untitled"
+author: "Joe Fernando"
+date: "23 July 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install and load up libraries
+
+To get started you will need loging id/password from your IG account along with your api key. The current link is pointed at the Dev verson of the API.
+
+The usual warnings apply for use of this library, I built this for my personal use, there is no regular support for this library. I have published this to help and advance the R community. Use at own risk.
+
+
+To get started install **rIG** along with its dependancies: 
+
+```{}
+library(ghit)
+install_github("JoeFernando/rIG")
+
+library(rIG)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(jsonlite)
+library(httr)
+library(rlist)
+library(glue)
+```
+
+
+
+## Login/Logout
+
+```{}
+
+b   <- '{"identifier":"your_login_id", "password": "insert_password_here"}'
+api <- "insert_api_key_here"
+
+ig_login(b, api) 
+
+ig_logout() # this will end your session
+
+```
+
+
+
+## Searching for Markets
+
+A tibble is retuned for all matching markets:
+
+```{}
+ig_search("Copper")
+ig_search("AUDUSD")
+```
+
+
+
+## Time resolutions for history data
+
+There is a helper `time_resolution` vector to list out the options available. Presently, `SECOND`is not working.
+
+```{r, echo = TRUE}
+
+rIG::time_resolution
+
+```
+
+
+
+## Downloading history
+
+When you query the API the returned data gives both `bid` and `ask`. Hence, there is a two step process to getting data in the familiar `ohlcv` form, however the process is straighforward. If you prefer you could wrap the whole thing within a function. I prefer to have these separately. The result is presented in `tibble` format:
+
+```{}
+raw_dl <- ig_history(epic = "CS.D.GBPUSD.CFD.IP", mkt.name = "GBP/USD", 
+                          from = "2018-07-02", to = "2018-07-03", res = "DAY")
+
+ohlc_dl <- get_ohlc(raw_dl, "ask")    # you can change between "bid" or "ask" - default is set for "ask"
+ohlc_dl_rename <- get_ohlc_rename(raw_dl, "ask") # this assigns mkt.name as prefix to ohlcv column names
+
+```
+
+
+
+Additionally, the `mkt.name` is set as the `attribute` name for the returned data. This is very handy to name within  `lists` to hold data for analysis. 
+
+``` {}
+epic_names <- read_csv("epic_names.csv")   # table with epic names and instrument names
+
+
+raw_list <- map2(epic_names$epic, epic_names$instrumentName, ~ig_history(epic = .x, mkt.name = .y,
+                                                                   from = "2018-07-01", to = "2018-07-03", 
+                                                                   res = "DAY"))
+
+names(raw_list) <- map_chr(raw_list, ~attr(.x, "name")) # This is to name the tibbles within the list
+
+
+ohlc_list         <- map(raw_list, ~get_ohlc(.x))
+ohlc_list_renamed <- map(raw_list, ~get_ohlc_rename(.x))  
+
+
+# Check names
+names(raw_list)
+names(ohlc_list)
+names(ohlc_list_renamed)
+```
+
+
+I download all my data in one go, so to speed-up your download use the `furrr` package, change `map2` to `future_map2`.
+
+
+>>>>>>> 030890b425a5b33309046c8ccb8c5ec801f7d893
