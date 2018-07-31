@@ -296,26 +296,16 @@ ig_eod_list <- function(mkt.name,
 # Update eod dategiven a dataframe ####
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-ig_eod <- function(mkt.name,
+ig_eod <- function(mkt.name = "",
                    to.date = (Sys.Date() + lubridate::ddays(1)),
                    df.w.hist,
-                   epic.table,
-                   epic.code.col_name = "epic",
-                   epic.name.col.name = "instrumentName"){
-
-
-  # find epic code
-  epic_code <- epic.table %>%
-    filter(!!rlang::sym(epic.name.col.name) == mkt.name) %>%
-    select(!!rlang::sym(epic.code.col_name)) %>%
-    as.character()
-
+                   epic.code){
 
   # find start date
   last_date  <- max(df.w.hist$snapshotTime)
   start_date <- (last_date - lubridate::ddays(1)) %>% as.Date %>% as.character
 
-  dl_data <- ig_history(epic = epic_code, mkt.name = mkt.name,
+  dl_data <- ig_history(epic = epic.code, mkt.name = mkt.name,
                         from = start_date, to = to.date, res = "DAY", qty = 1000)
 
   all_data <- bind_rows(df.w.hist %>% filter(snapshotTime < last_date), dl_data) %>% unique
