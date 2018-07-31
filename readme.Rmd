@@ -1,13 +1,16 @@
 ---
 title: "rIG - IG Markets API Vignette"
 author: "Joe Fernando"
-date: "26 July 2018"
+date: "31 July 2018"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+All help in maintaining this library is very much appreciated!
+
 
 ## Install and load up libraries
 
