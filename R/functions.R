@@ -160,7 +160,7 @@ format_hist <- function(df){
 
 ig_search <- function(search_string){
 
-  search_string <- stringr::str_replace(search_string, " ", "%20")
+  search_string <- stringr::str_replace_all(search_string, " ", "%20")
   link <- glue::glue("https://demo-api.ig.com/gateway/deal/markets?searchTerm=", search_string)
 
   search_markets <- httr::GET(link,
@@ -188,7 +188,7 @@ ig_search <- function(search_string){
 get_markets <- function(x, dl.list = market_names){
 
   # dl.list[[x]] %>% bind_rows()   # this does not work due to a NULL result in one of the values
-  rlist::list.rbind(dl.list[[x]]) %>% t %>% tibble::as.tibble
+  rlist::list.rbind(dl.list[[x]]) %>% t %>% tibble::as.tibble()
 
 }
 
