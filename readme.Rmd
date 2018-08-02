@@ -1,7 +1,6 @@
 ---
 title: "rIG - IG Markets API Vignette"
-author: "Joe Fernando"
-date: "31 July 2018"
+date: "03 August 2018"
 output: html_document
 ---
 
@@ -115,6 +114,11 @@ names(ohlc_list_renamed)
 
 
 I download all my data in one go, so to speed-up your download use the `furrr` package, change `map2` to `future_map2`.
+
+###Remaining Allowance
+Everytime you download data a global object named `ig_remaining_allowance` is updated with the remaining weekly allowance. 
+
+
 
 ## Updating EOD Data
 Two functions are available to update EOD data, `ig_eod` and `ig_eod_list`. As I hold my data in a list, I use the latter function. To use `ig_eod`, supply the `raw_dl` file to the function along with the `epic.code`. 

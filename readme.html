@@ -9,9 +9,8 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Joe Fernando" />
 
-<meta name="date" content="2018-07-26" />
+<meta name="date" content="2018-08-03" />
 
 <title>rIG - IG Markets API Vignette</title>
 
@@ -120,12 +119,12 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">rIG - IG Markets API Vignette</h1>
-<h4 class="author"><em>Joe Fernando</em></h4>
-<h4 class="date"><em>26 July 2018</em></h4>
+<h4 class="date"><em>03 August 2018</em></h4>
 
 </div>
 
 
+<p>All help in maintaining this library is very much appreciated!</p>
 <div id="install-and-load-up-libraries" class="section level2">
 <h2>Install and load up libraries</h2>
 <p>To get started you will need loging id/password from your IG account along with your api key. The current link is pointed at the Dev verson of the API.</p>
@@ -197,25 +196,28 @@ names(raw_list)
 names(ohlc_list)
 names(ohlc_list_renamed)</code></pre>
 <p>I download all my data in one go, so to speed-up your download use the <code>furrr</code> package, change <code>map2</code> to <code>future_map2</code>.</p>
+<div id="remaining-allowance" class="section level3">
+<h3>Remaining Allowance</h3>
+<p>Everytime you download data a global object named <code>ig_remaining_allowance</code> is updated with the remaining weekly allowance.</p>
+</div>
 </div>
 <div id="updating-eod-data" class="section level2">
 <h2>Updating EOD Data</h2>
-<p>Two functions are available to update EOD data, <code>ig_eod</code> and <code>ig_eod_list</code>. As I hold my data in a list, I use the latter function. The function is pretty simple, it assumes that you have a table containing <code>epic codes</code> and <code>mkt.name</code> as used in history download function. usage is as follows:</p>
+<p>Two functions are available to update EOD data, <code>ig_eod</code> and <code>ig_eod_list</code>. As I hold my data in a list, I use the latter function. To use <code>ig_eod</code>, supply the <code>raw_dl</code> file to the function along with the <code>epic.code</code>.</p>
+<p>The list function is pretty simple, it assumes that you have a table containing <code>epic codes</code> and <code>mkt.name</code> as used in history download function. Usage of both are follows:</p>
 <pre><code>
 ig_eod &lt;- (mkt.name,
 to.date = (Sys.Date() + lubridate::ddays(1)),   # this is pre set to download up to the latest date
-df.w.hist,                                      # tibble/df containing historic data
-epic.table,                                     # this should be a df with 2 columns, epic and its name
-epic.code.col_name = &quot;epic&quot;,                    # these two epic.table field names 
-epic.name.col.name = &quot;instrumentName&quot;)
+df.w.hist,                                      # previously download file from IG Markets using ig_history()
+epic.code)                                      # epic name as character
 
 
 
 ig_eod_list &lt;- (mkt.name,
-to.date = (Sys.Date() + lubridate::ddays(1)),
+to.date = (Sys.Date() + lubridate::ddays(1)), # this is pre set to download up to the latest date
 list.of.df,                                   # list containing your data
-epic.table,
-epic.code.col_name = &quot;epic&quot;,
+epic.table,                                   # this should be a df with 2 columns, epic and its name
+epic.code.col_name = &quot;epic&quot;,                  # these two epic.table field names 
 epic.name.col.name = &quot;instrumentName&quot;)
 
 

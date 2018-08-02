@@ -87,7 +87,7 @@ ig_history <- function(epic, mkt.name = "", from, to, res, qty = 10){
 
   dl_1 <- httr::content(dl, "parsed", "application/json", encoding="UTF-8")
 
-  allowance <<- dl_1$metadata$allowance %>% dplyr::bind_rows()
+  ig_remaining_allowance <<- dl_1$metadata$allowance %>% dplyr::bind_rows()
 
   dl_2 <- dl_1[["prices"]]
 
