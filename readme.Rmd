@@ -1,6 +1,6 @@
 ---
 title: "rIG - IG Markets API Vignette"
-date: "03 August 2018"
+date: "11 March 2019"
 output: html_document
 ---
 
@@ -8,6 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+For some reason (which I'm yet to find out) reamme.html is not correctly showing-up on Git!
 All help in maintaining this library is very much appreciated!
 
 
