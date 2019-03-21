@@ -17,12 +17,9 @@ time_resolution <- c("SECOND", "MINUTE", "MINUTE_2", "MINUTE_3", "MINUTE_5", "MI
 # Function to authenticate ####
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-ig_login <- function(body.input, api.key = "", type = "DEMO"){
+ig_login <- function(body.input, api.key = ""){
 
-  if(type == "PROD") {main_link <<- "https://api.ig.com/gateway/deal/"} else if(type == "DEMO") {main_link <<- "https://demo-api.ig.com/gateway/deal/"} else {main_link <<- ""}
-
-  r <- httr::POST(glue::glue(main_link, "session"),
-  # r <- httr::DELETE("https://demo-api.ig.com/gateway/deal/session",
+  r <- httr::POST("https://demo-api.ig.com/gateway/deal/session",
                   httr::add_headers(`VERSION` = "2",
                               `X-IG-API-KEY` = api.key),
                   httr::content_type_json(),
@@ -46,8 +43,7 @@ ig_login <- function(body.input, api.key = "", type = "DEMO"){
 
 ig_logout <- function(){
 
-  r <- httr::DELETE(glue::glue(main_link, "session"),
-  # r <- httr::DELETE("https://demo-api.ig.com/gateway/deal/session",
+  r <- httr::DELETE("https://demo-api.ig.com/gateway/deal/session",
                     httr::add_headers(`VERSION` = "1",
                                 `X-IG-API-KEY` = api_key,
                                 `CST` = cst,
@@ -76,9 +72,11 @@ ig_history <- function(epic, mkt.name = "", from, to, res, qty = 10){
   from <- stringr::str_replace_all(from, ":", "%3A")
   to   <- stringr::str_replace_all(to, ":", "%3A")
 
-  # first_link <- "https://demo-api.ig.com/gateway/deal/prices/"
-  first_link <- glue::glue(main_link, "prices/")
+  first_link <- "https://demo-api.ig.com/gateway/deal/prices/"
   http_link <- glue::glue(first_link, epic, "?resolution=", res, "&from=", from, "&to=", to, "&max=", qty, "&pageSize=100000&pageNumber=1")
+
+
+
 
   dl <- httr::GET(http_link,
                   httr::add_headers(`VERSION` = "3",
@@ -110,7 +108,7 @@ ig_history <- function(epic, mkt.name = "", from, to, res, qty = 10){
 
 extract_prices <- function(type, list.of.prices){
 
-  # requireNamespace("dplyr")
+  requireNamespace("dplyr")
 
   x <- list.of.prices[type] %>% rlist::list.rbind() %>% as.character() %>% t %>% tibble::as.tibble()
 
@@ -164,8 +162,8 @@ format_hist <- function(df){
 ig_search <- function(search_string){
 
   search_string <- stringr::str_replace_all(search_string, " ", "%20")
-  # link <- glue::glue("https://demo-api.ig.com/gateway/deal/markets?searchTerm=", search_string)
-  link <- glue::glue(main_link, "markets?searchTerm=", search_string)
+  link <- glue::glue("https://demo-api.ig.com/gateway/deal/markets?searchTerm=", search_string)
+
   search_markets <- httr::GET(link,
                               httr::add_headers(`VERSION` = "1",
                                           `X-IG-API-KEY` = api_key,
@@ -262,7 +260,7 @@ clean_out_names <- function(text.input){
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Update eod data in a list ####
+# Update eod date in a list ####
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 ig_eod_list <- function(mkt.name,
@@ -296,7 +294,7 @@ ig_eod_list <- function(mkt.name,
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Update eod data ####
+# Update eod dategiven a dataframe ####
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 ig_eod <- function(mkt.name = "",
@@ -320,132 +318,6 @@ ig_eod <- function(mkt.name = "",
 
 }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Get epic details ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-ig_epic <- function(epic){
-
-  # link <- glue::glue("https://demo-api.ig.com/gateway/deal/markets/", epic)
-  link <- glue::glue(main_link, "markets/", epic)
-  epic_details <- httr::GET(link,
-                              httr::add_headers(`VERSION` = "1",
-                                                `X-IG-API-KEY` = api_key,
-                                                `CST` = cst,
-                                                `X-SECURITY-TOKEN` = token),
-                              httr::content_type_json())
-
-  parsed_output <- httr::parsed_content(epic_details)
-
-  return(parsed_output)
-
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Get market ID ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-get_market_id <- function(parsed_output){
-      parsed_output$instrument$marketId
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Get market sentiment ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-ig_mkt_sentiment <- function(market_id){
-
-  # link <- glue::glue("https://demo-api.ig.com/gateway/deal/clientsentiment/", market_id)
-  link <- glue::glue(main_link, "clientsentiment/", market_id)
-  epic_details <- httr::GET(link,
-                            httr::add_headers(`VERSION` = "1",
-                                              `X-IG-API-KEY` = api_key,
-                                              `CST` = cst,
-                                              `X-SECURITY-TOKEN` = token),
-                            httr::content_type_json())
-
-  parsed_output <- httr::parsed_content(epic_details) %>% dplyr::bind_rows()
-
-  parsed_output$Date <- Sys.time()
-
-  parsed_output <- parsed_output %>% dplyr::select(4, 1, 2, 3)
-
-  return(parsed_output)
-
-}
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Download sentiment ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-ig_sentiment <- function(epic){
-
-  ig_epic(epic) %>% get_market_id() %>% ig_mkt_sentiment()
-
-}
-
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Update sub-eod data ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-ig_subeod <- function(mkt.name = "",
-                      to.date = glue(as.character(Sys.Date() + lubridate::ddays(1)), "T23:59:59"),
-                      df.w.hist,
-                      epic.code,
-                      res){
-
-  # find start date
-  start_date <- df.w.hist %>% dplyr::arrange(snapshotTime) %>%
-    dplyr::slice(n() - 1) %>% .$snapshotTimeUTC # %>% as.character %>%
-    # str_replace(" ", "T")
-
-  dl_data <- ig_history(epic = epic.code, mkt.name = mkt.name,
-                        from = start_date, to = to.date, res = res, qty = "1000000")
-
-  all_data <- bind_rows(df.w.hist %>% filter(lubridate::ymd_hms(snapshotTimeUTC) < lubridate::ymd_hms(start_date)), dl_data) %>% unique
-
-  attr(all_data, "name") <- mkt.name
-
-  return(all_data)
-
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Update sub-eod data in a list ####
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-ig_subeod_list <- function(mkt.name,
-                           to.date = glue(as.character(Sys.Date() + lubridate::ddays(1)), "T23:59:59"),
-                           list.of.df,
-                           res,
-                           epic.table,
-                           epic.code.col_name = "epic",
-                           epic.name.col.name = "instrumentName"){
-
-  # find epic code
-  epic_code <- epic.table %>%
-    filter(!!rlang::sym(epic.name.col.name) == mkt.name) %>%
-    select(!!rlang::sym(epic.code.col_name)) %>%
-    as.character()
-
-
-  # find start date
-  start_date  <- list.of.df[[mkt.name]] %>% dplyr::arrange(snapshotTime) %>%
-    dplyr::slice(n() - 1) %>% .$snapshotTimeUTC #%>% as.character %>%
-    #stringr::str_replace(" ", "T")
-
-  dl_data <- ig_history(epic = epic_code, mkt.name = mkt.name,
-                        from = start_date, to = to.date, res = res, qty = "1000000")
-
-  all_data <- bind_rows(list.of.df[[mkt.name]] %>% filter(lubridate::ymd_hms(snapshotTimeUTC) < lubridate::ymd_hms(start_date)), dl_data) %>% unique
-
-  attr(all_data, "name") <- mkt.name
-
-  return(all_data)
-
-
-}
 
